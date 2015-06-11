@@ -1,3 +1,6 @@
+﻿var Vidyano;
+(function (Vidyano) {
+
 var Path = {
     'version': "0.8.4",
     'map': function (path) {
@@ -26,11 +29,22 @@ var Path = {
                 }
             }
         },
+        'replaceState': function (state, title, path) {
+            if (Path.history.supported) {
+                if (Path.dispatch(path)) {
+                    history.replaceState(state, title, path);
+                }
+            } else {
+                if (Path.history.fallback) {
+                    window.location.hash = "#" + path;
+                }
+            }
+        },
         'popState': function(event){
             var initialPop = !Path.history.initial.popped && location.href == Path.history.initial.URL;
             Path.history.initial.popped = true;
             if(initialPop) return;
-            Path.dispatch(document.location.pathname);
+            Path.dispatch(document.location.hash);
         },
         'listen': function(fallback){
             Path.history.supported = !!(window.history && window.history.pushState);
@@ -52,20 +66,26 @@ var Path = {
             }
         }
     },
+    'splitRegex': /\/|\./g,
     'match': function (path, parameterize) {
-        var params = {}, route = null, possible_routes, slice, i, j, compare;
+        var matchedRoutes = [];
+
+        var route = null, possible_routes, slice, i, j, compare;
         for (route in Path.routes.defined) {
             if (route !== null && route !== undefined) {
                 route = Path.routes.defined[route];
                 possible_routes = route.partition();
                 for (j = 0; j < possible_routes.length; j++) {
+                    var params = {};
                     slice = possible_routes[j];
                     compare = path;
                     if (slice.search(/:/) > 0) {
-                        for (i = 0; i < slice.split("/").length; i++) {
-                            if ((i < compare.split("/").length) && (slice.split("/")[i].charAt(0) === ":")) {
-                                params[slice.split('/')[i].replace(/:/, '')] = compare.split("/")[i];
-                                compare = compare.replace(compare.split("/")[i], slice.split("/")[i]);
+                        var splittedSlice = slice.split(this.splitRegex);
+                        for (i = 0; i < splittedSlice.length; i++) {
+                            var splittedCompare = compare.split(this.splitRegex);
+                            if ((i < splittedCompare.length) && (splittedSlice[i].charAt(0) === ":")) {
+                                params[splittedSlice[i].replace(/:/, '')] = splittedCompare[i];
+                                compare = compare.replace(new RegExp("(\\b|^|\\.|\\/)" + splittedCompare[i].replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&") + "(\\b|$|\\.|\\/)"), "$1" + splittedSlice[i] + "$2");
                             }
                         }
                     }
@@ -73,34 +93,25 @@ var Path = {
                         if (parameterize) {
                             route.params = params;
                         }
-                        return route;
+
+                        matchedRoutes.push(route);
                     }
                 }
             }
         }
-        return null;
+        return matchedRoutes.length > 0 ? Enumerable.from(matchedRoutes).orderBy(function(r) { return r.params ? Object.keys(r.params).length : 0;}).first() : null;
     },
     'dispatch': function (passed_route) {
-        var previous_route, matched_route;
-        if (Path.routes.current !== passed_route) {
-            Path.routes.previous = Path.routes.current;
-            Path.routes.current = passed_route;
-            matched_route = Path.match(passed_route, true);
+        var matched_route;
+        Path.routes.current = passed_route;
+        matched_route = Path.match(passed_route, true);
 
-            if (Path.routes.previous) {
-                previous_route = Path.match(Path.routes.previous);
-                if (previous_route !== null && previous_route.do_exit !== null) {
-                    previous_route.do_exit();
-                }
-            }
-
-            if (matched_route !== null) {
-                matched_route.run();
-                return true;
-            } else {
-                if (Path.routes.rescue !== null) {
-                    Path.routes.rescue();
-                }
+        if (matched_route !== null) {
+            matched_route.run();
+            return true;
+        } else {
+            if (Path.routes.rescue !== null) {
+                Path.routes.rescue();
             }
         }
     },
@@ -190,3 +201,6 @@ Path.core.route.prototype = {
         }
     }
 };
+
+    Vidyano.Path = Path;
+})(Vidyano || (Vidyano = {}));

@@ -1,0 +1,11 @@
+{
+  "name": "pathjs",
+  "version": "0.8.4",
+  "homepage": "https://github.com/2sky/pathjs",
+  "authors": [
+    "Mike Trpcic (http://mtrpcic.net/)"
+  ],
+  "description": "Lightweight client-side routing library",
+  "main": "path.min.js",
+  "license": "MIT"
+}

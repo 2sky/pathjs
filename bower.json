@@ -6,6 +6,6 @@
     "Mike Trpcic (http://mtrpcic.net/)"
   ],
   "description": "Lightweight client-side routing library",
-  "main": "path.min.js",
+  "main": "path.js",
   "license": "MIT"
 }

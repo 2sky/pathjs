@@ -30,9 +30,8 @@ var Path = {
         },
         'replaceState': function (state, title, path) {
             if (Path.history.supported) {
-                if (Path.dispatch(path)) {
-                    history.replaceState(state, title, path);
-                }
+                Path.dispatch(path);
+                history.replaceState(state, title, path);
             } else {
                 if (Path.history.fallback) {
                     window.location.hash = "#" + path;

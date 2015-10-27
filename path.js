@@ -20,9 +20,8 @@ var Path = {
         'initial':{}, // Empty container for "Initial Popstate" checking variables.
         'pushState': function(state, title, path){
             if(Path.history.supported){
-                if(Path.dispatch(path)){
-                    history.pushState(state, title, path);
-                }
+                Path.dispatch(path);
+                history.pushState(state, title, path);
             } else {
                 if(Path.history.fallback){
                     window.location.hash = "#" + path;

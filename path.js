@@ -1,6 +1,28 @@
 ﻿var Vidyano;
 (function (Vidyano) {
+function splitWithTail(value, separator, limit) {
+    var pattern, startIndex, m, parts = [];
 
+    if(!limit) {
+        return value.split(separator);
+    }
+
+    if(separator instanceof RegExp) {
+        pattern = new RegExp(separator.source, 'g' + (separator.ignoreCase ? 'i' : '') + (separator.multiline ? 'm' : ''));
+    } else {
+        pattern = new RegExp(separator.replace(/([.*+?^${}()|\[\]\/\\])/g, '\\$1'), 'g');
+    }
+
+    do {
+        startIndex = pattern.lastIndex;
+        if(m = pattern.exec(value)) {
+            parts.push(value.substr(startIndex, m.index - startIndex));
+        }
+    } while(m && parts.length < limit - 1);
+    parts.push(value.substr(pattern.lastIndex));
+
+    return parts;
+}
 var Path = {
     'version': "0.8.4",
     'map': function (path) {
@@ -80,11 +102,9 @@ var Path = {
                     if (slice.search(/:/) > 0) {
                         var splittedSlice = slice.split(this.splitRegex);
                         for (i = 0; i < splittedSlice.length; i++) {
-                            var splittedCompare = compare.split(this.splitRegex);
-                            if (splittedCompare.length > splittedSlice.length)
-                                splittedCompare = splittedCompare.slice(0, splittedSlice.length - 1).concat(splittedCompare.slice(splittedSlice.length - 1).join("."));
+                            var splittedCompare = slice.search(/\*/) > 0 ? splitWithTail(compare, this.splitRegex, splittedSlice.length) : compare.split(this.splitRegex);
                             if ((i < splittedCompare.length) && (splittedSlice[i].charAt(0) === ":")) {
-                                params[splittedSlice[i].replace(/:/, '')] = splittedCompare[i];
+                                params[splittedSlice[i].replace(/:/, '').replace(/\*/, '')] = splittedCompare[i];
                                 compare = compare.replace(new RegExp("(\\b|^|\\.|\\/)" + splittedCompare[i].replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&") + "(\\b|$|\\.|\\/)"), "$1" + splittedSlice[i] + "$2");
                             }
                         }

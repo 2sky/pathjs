@@ -64,7 +64,7 @@ var Path = {
             var initialPop = !Path.history.initial.popped && location.href == Path.history.initial.URL;
             Path.history.initial.popped = true;
             if(initialPop) return;
-            Path.dispatch(document.location.hash);
+            Path.dispatch(Path.routes.rootPath ? document.location.href.substr(Path.routes.root.length) : document.location.hash);
         },
         'listen': function(fallback){
             Path.history.supported = !!(window.history && window.history.pushState);
@@ -169,6 +169,7 @@ var Path = {
     'routes': {
         'current': null,
         'root': null,
+        'rootPath': null,
         'rescue': null,
         'previous': null,
         'defined': {}

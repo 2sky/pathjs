@@ -119,7 +119,7 @@ var Path = {
                 }
             }
         }
-        return matchedRoutes.length > 0 ? Enumerable.from(matchedRoutes).orderBy(function(r) { return r.params ? Object.keys(r.params).length : 0;}).first() : null;
+        return matchedRoutes.length > 0 ? matchedRoutes.orderBy(function(r) { return r.params ? Object.keys(r.params).length : 0;})[0] : null;
     },
     'dispatch': function (passed_route) {
         var matched_route;
